@@ -1,0 +1,29 @@
+# Secrets and live config
+.env
+credentials/
+!credentials/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# Data and logs
+data/
+*.log
+*.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Playwright
+playwright/.auth/
+
+# OS
+.DS_Store
+Thumbs.db

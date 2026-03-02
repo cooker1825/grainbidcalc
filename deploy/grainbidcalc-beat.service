@@ -1,0 +1,17 @@
+[Unit]
+Description=GrainBidCalc - Celery Beat Scheduler
+After=network-online.target redis.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/grainbidcalc
+ExecStart=/opt/grainbidcalc/venv/bin/celery -A workers.celery_app beat --loglevel=info
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
