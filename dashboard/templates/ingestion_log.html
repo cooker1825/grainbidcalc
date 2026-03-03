@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Ingestion Log{% endblock %}
+
+{% block content %}
+<div class="flex" style="margin-bottom:20px;">
+  <h2 style="margin:0;">Ingestion Log</h2>
+  <span style="font-size:0.85rem; color:#555; margin-left:auto;">Last 100 events</span>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Source</th>
+      <th>Sender / URL</th>
+      <th>Bids Stored</th>
+      <th>Status</th>
+      <th>Processing (ms)</th>
+      <th>Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+    <tr>
+      <td class="text-mono" style="white-space:nowrap; font-size:0.8rem;">{{ log.created_at[:19].replace('T',' ') }}</td>
+      <td>{{ log.source_type }}</td>
+      <td style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ log.source_identifier }}">
+        {{ log.source_identifier or '—' }}
+      </td>
+      <td class="text-right">{{ log.parsed_bids_count or 0 }}</td>
+      <td>
+        {% if log.status == 'parsed' %}<span class="badge badge-strong">parsed</span>
+        {% elif log.status == 'failed' %}<span class="badge badge-very-weak">failed</span>
+        {% elif log.status == 'review' %}<span class="badge badge-weak">review</span>
+        {% else %}<span class="badge badge-normal">{{ log.status }}</span>{% endif %}
+      </td>
+      <td class="text-right text-mono">{{ log.processing_time_ms or '—' }}</td>
+      <td style="max-width:300px; font-size:0.8rem; color:#991b1b;">{{ log.error_message or '' }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="text-align:center; padding:24px; color:#999;">No ingestion events yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

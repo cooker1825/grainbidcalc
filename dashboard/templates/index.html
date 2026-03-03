@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Live Bids{% endblock %}
+
+{% block content %}
+
+<div class="flex" style="margin-bottom:20px;">
+  <h2 style="margin:0;">Live Ranked Bids — {{ delivery_month }}</h2>
+  {% if exchange_rate %}
+    <span style="font-size:0.85rem; color:#555;">USD/CAD: <strong>{{ "%.4f"|format(exchange_rate) }}</strong></span>
+  {% else %}
+    <span class="alert alert-warn" style="margin:0; padding:6px 12px;">No exchange rate cached — prices may be stale</span>
+  {% endif %}
+  <a href="/api/distribution/trigger" class="btn btn-primary btn-sm" style="margin-left:auto;"
+     onclick="return confirm('Send bid distribution to all farmers now?')">
+    Distribute Now
+  </a>
+</div>
+
+{% if not bid_tables %}
+  <div class="alert alert-warn">No bids found for {{ delivery_month }}. Ingest some bid sheets to get started.</div>
+{% endif %}
+
+{% for commodity, bids in bid_tables.items() %}
+<h3>{{ commodity }}</h3>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Buyer</th>
+      <th>Destination</th>
+      <th>Delivery</th>
+      <th>CAD Basis</th>
+      <th>US Basis</th>
+      <th>Signal</th>
+      <th>Buyer Cash</th>
+      <th>Mapleview Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for bid in bids %}
+    <tr>
+      <td>{{ bid.rank }}</td>
+      <td>{{ bid.get('buyers', {}).get('name', '—') }}</td>
+      <td>{{ bid.destination or '—' }}</td>
+      <td>{{ bid.delivery_month }}</td>
+      <td class="text-mono">{{ "%.4f"|format(bid.cad_basis) }}</td>
+      <td class="text-mono">{{ "%.4f"|format(bid.us_basis) }}</td>
+      <td>
+        {% set signal = bid.us_basis_signal %}
+        {% if signal == 'STRONG' %}<span class="badge badge-strong">STRONG</span>
+        {% elif signal == 'NORMAL' %}<span class="badge badge-normal">NORMAL</span>
+        {% elif signal == 'WEAK' %}<span class="badge badge-weak">WEAK</span>
+        {% else %}<span class="badge badge-very-weak">VERY WEAK</span>{% endif %}
+      </td>
+      <td class="text-mono">${{ "%.4f"|format(bid.cash_price_cad_bu) }}</td>
+      <td class="text-mono" style="font-weight:700; color:#1a4731;">${{ "%.4f"|format(bid.mapleview_price_cad_bu) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+
+{% endblock %}

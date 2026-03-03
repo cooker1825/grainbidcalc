@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}US Basis{% endblock %}
+
+{% block extra_head %}
+<style>
+  .heatmap td.strong  { background: #d1fae5; color: #065f46; font-weight: 600; }
+  .heatmap td.normal  { background: #e0f2fe; color: #0c4a6e; }
+  .heatmap td.weak    { background: #fef9c3; color: #713f12; }
+  .heatmap td.vweak   { background: #fee2e2; color: #991b1b; font-weight: 600; }
+  .heatmap td.empty   { background: #f5f5f5; color: #aaa; text-align: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>US Basis Heatmap</h2>
+<p style="color:#555; font-size:0.875rem; margin-bottom:20px;">
+  US Basis strips out currency effects and shows true local demand vs Chicago.
+  <strong>Green = buyer urgently needs grain.</strong> Red = buyer has plenty.
+  A "positive" CAD basis can be misleading when the Canadian dollar is weak —
+  US Basis is the analytical truth.
+</p>
+
+<div class="alert alert-warn">
+  US Basis heatmap requires live futures and FX data.
+  Data is populated from the <a href="/">ranked bids page</a> once bids are ingested.
+</div>
+
+<table class="heatmap">
+  <thead>
+    <tr>
+      <th>Buyer</th>
+      <th>Commodity</th>
+      <th>Nearby</th>
+      <th>+1 Month</th>
+      <th>+2 Month</th>
+      <th>Harvest</th>
+      <th>New Crop</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for buyer in buyers %}
+    <tr>
+      <td>{{ buyer.name }}</td>
+      <td>—</td>
+      <td class="empty">—</td>
+      <td class="empty">—</td>
+      <td class="empty">—</td>
+      <td class="empty">—</td>
+      <td class="empty">—</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" style="text-align:center; padding:24px; color:#999;">No buyers configured. <a href="/api/buyers">Add buyers</a> to get started.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top:16px; font-size:0.8rem; color:#666;">
+  <strong>Signal thresholds (soybeans):</strong>
+  <span class="badge badge-strong">STRONG ≥ +0.50</span>
+  <span class="badge badge-normal">NORMAL −0.50 to +0.50</span>
+  <span class="badge badge-weak">WEAK −1.00 to −0.50</span>
+  <span class="badge badge-very-weak">VERY WEAK &lt; −1.00</span>
+</div>
+{% endblock %}
