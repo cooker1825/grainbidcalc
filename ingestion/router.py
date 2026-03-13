@@ -6,10 +6,12 @@ Central ingestion router. Receives raw content from any source and:
   4. Normalizes and validates parsed bids
   5. CRITICAL: Back-calculates basis for cash-price-only sources (must use LIVE futures/FX)
   6. Stores bids in the database
-  7. Logs the ingestion
+  7. Writes CAD basis to XLSX buyer tabs
+  8. Logs the ingestion
 """
 
 import json
+import logging
 from datetime import date, datetime, timezone
 
 from parsing.llm_parser import parse_bid_sheet
@@ -19,8 +21,11 @@ from parsing.buyer_profiles import get_profile_for_source
 from calculation.price_calculator import back_calculate_basis_from_cash
 from calculation.futures_feed import get_latest_futures_price
 from calculation.exchange_rate import get_latest_exchange_rate
-from db.queries import insert_bid, mark_previous_bids_stale, log_ingestion
+from db.queries import insert_bid, mark_previous_bids_stale, log_ingestion, resolve_buyer_id, resolve_commodity_id
+from data.onedrive_writer import write_bids_to_onedrive
 from ingestion.preprocessor import preprocess
+
+logger = logging.getLogger(__name__)
 
 
 async def process_incoming(
@@ -61,6 +66,13 @@ async def process_incoming(
     # 4. Normalize
     exchange_rate = get_latest_exchange_rate()
     normalized = normalize_bids(all_bids, exchange_rate=exchange_rate)
+
+    # 4b. Resolve buyer_id and commodity_id from DB
+    for bid in normalized:
+        if not bid.get("buyer_id"):
+            bid["buyer_id"] = resolve_buyer_id(bid.get("buyer_name", ""))
+        if not bid.get("commodity_id"):
+            bid["commodity_id"] = resolve_commodity_id(bid.get("commodity", ""))
 
     # 5. CRITICAL: Back-calculate basis for cash-price-only bids RIGHT NOW
     #    (futures and FX must be captured at this exact moment)
@@ -129,7 +141,20 @@ async def process_incoming(
         except Exception as e:
             bid["storage_error"] = str(e)
 
-    # 8. Log
+    # 8. Write basis bids to SharePoint XLSX via Graph API
+    xlsx_bids = [
+        b for b in validated
+        if b.get("basis_value") is not None and not b.get("storage_error")
+    ]
+    if xlsx_bids:
+        try:
+            od_results = write_bids_to_onedrive(xlsx_bids)
+            od_written = sum(1 for r in od_results if r.get("success"))
+            logger.info("OneDrive: wrote %d/%d bids", od_written, len(xlsx_bids))
+        except Exception as e:
+            logger.warning("OneDrive write failed: %s", e)
+
+    # 9. Log
     elapsed_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
     log_ingestion({
         "source_type": source_type,

@@ -25,8 +25,8 @@ def validate_bids(bids: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for bid in bids:
         issues = []
 
-        # Required fields
-        for field in ("buyer_name", "commodity", "delivery_month", "source_type"):
+        # Required fields (source_type is added by the router, not the parser)
+        for field in ("buyer_name", "commodity", "delivery_month"):
             if not bid.get(field):
                 issues.append(f"missing_field:{field}")
 

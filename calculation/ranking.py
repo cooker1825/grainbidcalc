@@ -12,6 +12,7 @@ from calculation.price_calculator import calculate_full_pricing
 from calculation.aggression import get_aggression
 from calculation.futures_feed import get_latest_futures_price
 from calculation.exchange_rate import get_latest_exchange_rate
+from db.connection import get_client
 from db.queries import get_current_bids
 
 
@@ -55,3 +56,46 @@ def rank_bids(
         bid["rank"] = i + 1
 
     return ranked
+
+
+def get_ranked_bids(commodity_id: str, delivery_month: str | None = None) -> list[dict]:
+    """
+    Return ranked bids for all (or one) delivery month(s) for a commodity.
+    Skips months where futures price is unavailable.
+    Field names are normalised for the sheet sync task.
+    """
+    if delivery_month:
+        months = [delivery_month]
+    else:
+        client = get_client()
+        rows = (
+            client.table("basis_bids")
+            .select("delivery_month")
+            .eq("commodity_id", commodity_id)
+            .eq("is_current", True)
+            .execute()
+            .data or []
+        )
+        months = sorted({r["delivery_month"] for r in rows})
+
+    all_bids = []
+    for month in months:
+        try:
+            ranked = rank_bids(commodity_id, month)
+        except (ValueError, Exception):
+            continue
+        for bid in ranked:
+            buyer = bid.get("buyers") or {}
+            all_bids.append({
+                "delivery_month":  bid.get("delivery_month", month),
+                "rank":            bid.get("rank", ""),
+                "buyer_name":      buyer.get("name", "") if isinstance(buyer, dict) else "",
+                "destination":     bid.get("destination", ""),
+                "bid_type":        bid.get("bid_type", ""),
+                "cad_basis":       bid.get("cad_basis"),
+                "us_basis":        bid.get("us_basis"),
+                "live_cash":       bid.get("cash_price_cad_bu"),
+                "mapleview_price": bid.get("mapleview_price_cad_bu"),
+            })
+
+    return all_bids

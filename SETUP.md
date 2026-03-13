@@ -11,8 +11,8 @@ Work through each section in order. Don't skip ahead — later steps depend on e
 2. [Supabase (Database)](#2-supabase-database)
 3. [Anthropic API Key (LLM Parsing)](#3-anthropic-api-key-llm-parsing)
 4. [Twilio (SMS)](#4-twilio-sms)
-5. [Google Workspace API (Email)](#5-google-workspace-api-email)
-6. [CQG API (Futures Prices)](#6-cqg-api-futures-prices)
+5. [Email Inbox (IMAP)](#5-email-inbox-imap)
+6. [SharePoint XLSX via Microsoft Graph API](#6-sharepoint-xlsx-via-microsoft-graph-api-futures-prices--bid-writes)
 7. [Bank of Canada API (Exchange Rate)](#7-bank-of-canada-api-exchange-rate)
 8. [Local Development Setup](#8-local-development-setup)
 9. [Configure .env](#9-configure-env)
@@ -36,8 +36,8 @@ Before writing a single line of config, make sure you have accounts for everythi
 | Supabase | supabase.com | PostgreSQL database | Free tier OK to start |
 | Anthropic | console.anthropic.com | Claude API for LLM parsing | Pay-as-you-go |
 | Twilio | twilio.com | Inbound bid SMS + outbound farmer SMS | ~$20-40/mo |
-| Google Workspace | admin.google.com | markets@mapleviewgrain.ca email | Already have |
-| CQG | cqg.com | Live futures prices | Contact for API pricing |
+| HostPapa (IMAP) | mapleviewgrain.ca:993 | markets@ email inbox polling | Already have |
+| Microsoft Azure | portal.azure.com | Graph API for SharePoint XLSX (futures + bid writes) | Free |
 | GitHub | github.com | Already done | Free |
 | DigitalOcean | digitalocean.com | Already have | Already running |
 
@@ -125,77 +125,91 @@ Once your server is live at your DigitalOcean IP:
 
 ---
 
-## 5. Google Workspace API (Email)
+## 5. Email Inbox (IMAP)
 
-This lets the system read `markets@mapleviewgrain.ca` for inbound bid emails.
+The system polls `markets@mapleviewgrain.ca` via IMAP for inbound bid emails.
+Hosted on HostPapa (not Google Workspace — no Gmail API needed).
 
-### 5.1 Create a Google Cloud project
+### 5.1 Get IMAP credentials
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Click the project dropdown at the top → **New Project**
-3. Name: `grainbidcalc`
-4. Click **Create**
+1. Log in to your HostPapa email admin panel
+2. Note the IMAP settings:
+   - **Host**: `mapleviewgrain.ca` (port 993, SSL)
+   - **User**: `markets@mapleviewgrain.ca`
+   - **Password**: your email account password
 
-### 5.2 Enable the Gmail API
+### 5.2 Update .env
 
-1. In the search bar at the top, search: `Gmail API`
-2. Click it → click **Enable**
+```bash
+IMAP_HOST=mapleviewgrain.ca
+IMAP_PORT=993
+IMAP_USER=markets@mapleviewgrain.ca
+IMAP_PASSWORD=your-email-password
+```
 
-### 5.3 Create a service account
+### 5.3 Test the connection
 
-1. In the left sidebar: **IAM & Admin** → **Service Accounts**
-2. Click **Create Service Account**
-3. Name: `grainbidcalc-email`
-4. Click **Create and Continue** → **Done**
-5. Click on the service account you just created
-6. Go to the **Keys** tab → **Add Key** → **Create new key** → **JSON**
-7. A JSON file downloads automatically — this is your service account key
-8. Rename it to `service-account.json`
-9. Move it to `/opt/grainbidcalc/credentials/service-account.json` on the server
+```bash
+PYTHONPATH=/opt/grainbidcalc venv/bin/python -c "
+import asyncio; from ingestion.email_listener import test_connection
+print(asyncio.run(test_connection()))"
+```
 
-### 5.4 Grant the service account access to the inbox
-
-1. Copy the service account's email address (looks like `grainbidcalc-email@grainbidcalc-xxxxx.iam.gserviceaccount.com`)
-2. Log in to Google Workspace Admin at [admin.google.com](https://admin.google.com)
-3. Go to **Security** → **API Controls** → **Domain-wide Delegation**
-4. Click **Add new** and enter:
-   - Client ID: (find this in the JSON file, field `client_id`)
-   - OAuth Scopes:
-     ```
-     https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/gmail.modify
-     ```
-5. Click **Authorize**
-
-> This allows the service account to read and label emails in `markets@mapleviewgrain.ca`.
-
-### 5.5 Update .env
-
-Set `GOOGLE_SERVICE_ACCOUNT_JSON=credentials/service-account.json`
+> The Celery beat scheduler polls every 5 minutes. Processed emails are marked as read.
 
 ---
 
-## 6. CQG API (Futures Prices)
+## 6. SharePoint XLSX via Microsoft Graph API (Futures Prices + Bid Writes)
 
-CQG provides real-time CBOT/ICE futures data.
+The XLSX workbook is hosted on SharePoint. Jeff keeps it open on his desktop with CQG toolkit
+providing live futures in Col C. The server reads futures from it and writes basis bids (Col D)
++ timestamps (Col M) back to it via the Microsoft Graph API.
 
-### 6.1 Get API access
+### 6.1 Register an Azure app
 
-1. Contact CQG at [cqg.com](https://www.cqg.com) or through your existing broker relationship
-2. Request **CQG API** access for data feed
-3. They will provide `CQG_API_KEY` and `CQG_API_SECRET`
-4. Add these to your `.env` in Step 9
+1. Go to [portal.azure.com](https://portal.azure.com) → **Azure Active Directory** → **App registrations**
+2. Click **New registration**
+3. Name: `GrainBidCalc`
+4. Supported account types: **Single tenant**
+5. Click **Register**
+6. Note the **Application (client) ID** and **Directory (tenant) ID**
 
-### 6.2 If CQG is not yet available
+### 6.2 Create a client secret
 
-The system is designed to work without live CQG data initially:
-- `calculation/futures_feed.py` has a manual fallback
-- You can manually insert futures prices into the `futures_prices` table via Supabase SQL editor:
-  ```sql
-  INSERT INTO futures_prices (contract, price) VALUES ('ZSH26', 11.375);
-  INSERT INTO futures_prices (contract, price) VALUES ('ZCK26', 4.431);
-  ```
-- Update these manually each morning until the API integration is built
-- The `task_fetch_futures` Celery task will handle it automatically once CQG is connected
+1. In your app → **Certificates & secrets** → **New client secret**
+2. Description: `grainbidcalc-prod`, Expiry: 24 months
+3. Copy the secret **Value** immediately (shown only once)
+
+### 6.3 Grant API permissions
+
+1. In your app → **API permissions** → **Add a permission** → **Microsoft Graph**
+2. Choose **Application permissions** and add:
+   - `Files.ReadWrite.All`
+   - `Sites.ReadWrite.All`
+   - `User.Read.All`
+3. Click **Grant admin consent** (requires admin)
+
+### 6.4 Update .env
+
+```bash
+MS_TENANT_ID=your-tenant-id
+MS_CLIENT_ID=your-client-id
+MS_CLIENT_SECRET=your-client-secret
+```
+
+### 6.5 Find the Drive ID and File Item ID
+
+The server needs the SharePoint drive ID and file item ID. These are already configured in
+`data/onedrive_writer.py` and `data/onedrive_reader.py`. If you need to find them for a
+different file, use the Graph API explorer or the scripts in `data/`.
+
+### 6.6 How it works
+
+- `data/onedrive_reader.py` reads futures prices from the XLSX via Graph API
+- `data/onedrive_writer.py` writes CAD basis (Col D) + timestamp (Col M) to buyer tabs
+- `calculation/futures_feed.py` tries OneDrive first → local XLSX fallback → DB cache
+- Tab names with special characters (P&H) are URL-encoded (`P%26H`) for the Graph API
+- Celery beat fetches futures every 5 min during market hours (Mon–Fri 8:30 AM–3 PM ET)
 
 ---
 
@@ -279,13 +293,16 @@ TWILIO_ACCOUNT_SID=AC...
 TWILIO_AUTH_TOKEN=...
 TWILIO_PHONE_NUMBER=+1...
 
-# Google — from Step 5
-GOOGLE_SERVICE_ACCOUNT_JSON=credentials/service-account.json
-GMAIL_TARGET_EMAIL=markets@mapleviewgrain.ca
+# IMAP Email — from Step 5
+IMAP_HOST=mapleviewgrain.ca
+IMAP_PORT=993
+IMAP_USER=markets@mapleviewgrain.ca
+IMAP_PASSWORD=your-email-password
 
-# CQG — from Step 6 (leave blank until you have it)
-CQG_API_KEY=
-CQG_API_SECRET=
+# Microsoft Graph API (SharePoint XLSX) — from Step 6
+MS_TENANT_ID=your-azure-tenant-id
+MS_CLIENT_ID=your-azure-app-client-id
+MS_CLIENT_SECRET=your-azure-client-secret
 
 # Redis
 REDIS_URL=redis://localhost:6379/0
@@ -487,11 +504,8 @@ This installs: Python, Redis, Tesseract, poppler, creates the venv, installs all
 From your local machine:
 
 ```bash
-# Copy .env
+# Copy .env (contains IMAP, Supabase, Anthropic, MS Graph, Twilio credentials)
 scp .env root@159.89.127.66:/opt/grainbidcalc/.env
-
-# Copy Google service account key
-scp credentials/service-account.json root@159.89.127.66:/opt/grainbidcalc/credentials/
 ```
 
 ### 12.4 Re-run seed scripts on the server
@@ -680,15 +694,16 @@ SELECT * FROM distribution_log ORDER BY sent_at DESC LIMIT 5;
 Work through this before sending prices to real farmers.
 
 ### Infrastructure
-- [ ] Supabase project created and migrated
-- [ ] All tables verified in Supabase Table Editor
-- [ ] Commodities and buyers seeded
+- [x] Supabase project created and migrated
+- [x] All tables verified in Supabase Table Editor
+- [x] Commodities and buyers seeded (48+ buyers)
+- [x] RLS enabled on all 12 tables
 - [ ] Aggression parameters set to real margins
 - [ ] Bid destinations seeded
-- [ ] `.env` filled in with all real credentials (no blanks except CQG if deferred)
-- [ ] All three systemd services running (`active`)
-- [ ] Redis running
-- [ ] API health check returns `{"status":"ok"}`
+- [x] `.env` filled in with all real credentials (IMAP, MS Graph, Supabase, Anthropic, Twilio)
+- [x] All three systemd services running (`active`)
+- [x] Redis running
+- [x] API health check returns `{"status":"ok"}`
 
 ### Parsing
 - [ ] Parser tested against real ADM Windsor email → clean output
@@ -697,10 +712,16 @@ Work through this before sending prices to real farmers.
 - [ ] All unit tests passing (`pytest tests/test_calculator.py tests/test_normalizer.py`)
 
 ### Data
-- [ ] Futures prices seeded or CQG connected
-- [ ] Exchange rate seeded or Bank of Canada fetcher running
-- [ ] At least one bid in `basis_bids` table
+- [x] Futures prices from SharePoint XLSX (CQG add-in, read via Graph API)
+- [x] Exchange rate fetcher running (Bank of Canada API, every 30 min)
+- [x] ~210+ bids in `basis_bids` table (email + web scrapers)
 - [ ] US basis calculating correctly (check against manual calculation)
+
+### Web Scrapers
+- [x] DG Global scraper: ~35 bids per run (CAD/BU)
+- [x] HDC/Hensall scraper: ~16 bids per run (USD/BU, normalizer converts)
+- [x] Running every 30 min during market hours via Celery beat
+- [x] Idempotent re-scrapes via `upsert_bid()`
 
 ### Distribution
 - [ ] At least one farmer contact added
@@ -713,14 +734,39 @@ Work through this before sending prices to real farmers.
 - [ ] Test inbound SMS processed correctly
 
 ### Scheduled Tasks (Celery Beat)
-- [ ] `grainbidcalc-beat` service running
-- [ ] Email polling task firing every 5 minutes (check `journalctl -u grainbidcalc-beat -f`)
-- [ ] Futures fetch task firing (or manually updated daily until CQG)
-- [ ] Exchange rate fetch task firing
+- [x] `grainbidcalc-beat` service running
+- [x] Email polling task firing every 5 minutes
+- [x] Futures fetch task firing every 5 min during market hours
+- [x] Exchange rate fetch task firing every 30 min
+- [x] Web scraper task firing every 30 min during market hours
 
 ### Backup
 - [ ] Nightly cron job added
 - [ ] Test by running `bash deploy/github-backup.sh` manually and verifying push
+
+---
+
+## 18. Supabase Row Level Security (RLS)
+
+RLS is enabled on all 12 tables with permissive policies for `anon` and `service_role` roles.
+This was configured in 2026-03-11 via the Supabase SQL Editor.
+
+If you ever need to re-apply (e.g., after creating new tables):
+
+```sql
+-- For each table:
+ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow anon full access" ON <table_name>
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow service_role full access" ON <table_name>
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+```
+
+Tables with RLS: `buyers`, `commodities`, `basis_bids`, `aggression_params`,
+`futures_prices`, `exchange_rates`, `farmer_contacts`, `farmer_bid_preferences`,
+`bid_destinations`, `us_basis_history`, `distribution_log`, `ingestion_log`.
 
 ---
 
@@ -747,8 +793,22 @@ Work through this before sending prices to real farmers.
   `ufw allow 8000`
 
 **Back-calculation fails with "No futures price available"**
-→ Manually insert a futures price row into `futures_prices` in Supabase
-→ This happens when CQG is not yet connected and no price is cached
+→ Check that the SharePoint XLSX has CQG prices in Col C on the relevant buyer tab
+→ Verify MS Graph credentials are correct in `.env`
+→ Fallback: manually insert a futures price into `futures_prices` table in Supabase
+
+**Graph API 404 on worksheet update**
+→ Tab names with special characters must be URL-encoded (P&H → `P%26H`)
+→ Do NOT single-quote tab names in Graph API URLs — just URL-encode them
+
+**Web scraper returns 0 bids**
+→ DG Global: check if `:desktop_bids` attribute still exists in page HTML (Vue component)
+→ HDC: check if DTN API key is still valid (key: `XTyJHKfc0BlMM4zBa0bvUOL6GGYKDq22`)
+→ Check `journalctl -u grainbidcalc-worker -f` for scraper error logs
+
+**Duplicate key error on bid insert**
+→ Web scrapers use `upsert_bid()` for same-day re-scrapes — this is normal
+→ If email pipeline hits this, the same email may have been processed twice
 
 ---
 

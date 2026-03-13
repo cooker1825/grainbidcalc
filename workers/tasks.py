@@ -21,7 +21,7 @@ def task_scrape_web_sources():
 
 @app.task
 def task_fetch_futures():
-    """Refresh futures prices from CQG."""
+    """Read futures prices from XLSX and cache in DB."""
     from calculation.futures_feed import fetch_and_cache_futures_prices
     return fetch_and_cache_futures_prices()
 
@@ -102,3 +102,5 @@ def task_distribute_scheduled(time_slot: str):
     import asyncio
     from distribution.triggers import trigger_scheduled
     return asyncio.run(trigger_scheduled(time_slot))
+
+

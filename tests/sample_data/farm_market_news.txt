@@ -1,0 +1,142 @@
+FARM MARKET NEWS - ONTARIO COMMODITY REPORT FOR Thu, February 19
+(All Bases in CAD)
+Exchange rate was 1.369 up 0.0006
+Chicago corn closed narrowly mixed.
+
+      MAR26   HI 4.27  3/4                    DEC26    HI 4.62
+             LOW 4.24                                 LOW 4.59  1/4
+            CLOSE4.25  3/4  Down 1 1/4              CLOSE 4.61  1/2  Up  1/2
+
+            OLD CROP BASIS                          NEW CROP BASIS
+Location    Spot   1mt   2mt   3mt U.S. $/bu   $/mt Cntrct U.S.   $/bu   $/mt
+ELEVATORS        +MAY26+MAY26+JUL26
+CK Low       1.40                        5.66 222.73  1.20         5.82 228.93
+CK High      1.40                        5.66 222.73  1.20         5.82 228.93
+CK Avg       1.40                  -0.12 5.66 222.73  1.20 -0.37   5.82 228.93
+Essex Cty    1.40                        5.66 222.73  1.20         5.82 228.93
+Mdsx Low     1.40                        5.66 222.73  1.20         5.82 228.93
+Mdsx High    1.40                        5.66 222.73  1.20         5.82 228.93
+Mdsx Avg     1.40                  -0.12 5.66 222.73  1.20 -0.37   5.82 228.93
+Hensall      1.47                        5.72 225.35  1.22         5.83 229.58
+Bruce        1.45                        5.71 224.69  1.20         5.82 228.93
+Putnam       1.45                        5.71 224.69  1.20         5.82 228.93
+Guelph       1.45                        5.71 224.69  1.15         5.77 226.96
+Burford      1.45                        5.71 224.69  1.20         5.82 228.93
+Port Perry   1.75                        6.01 236.50  1.05         5.67 223.02
+Norfolk      1.40                        5.66 222.73  1.20         5.82 228.93
+Palmerston   1.45                        5.71 224.69  1.25         5.87 230.89
+Varna        1.45                        5.71 224.69  1.20         5.82 228.93
+Belmore      1.45                        5.71 224.69  1.25         5.87 230.89
+Trenton      2.05                        6.31 248.32  1.25         5.87 230.89
+Winchester   2.12                        6.38 251.07  1.43         6.05 237.98
+North Gower  2.10                        6.36 250.28  1.40         6.02 236.80
+Vankleek Hil 2.19                        6.45 253.83  1.49         6.11 240.34
+Huron FOB    1.69  1.63  1.67N/A         5.95 234.14N/A
+Kent FOB     1.90                        6.16 242.41  1.40         6.02 236.80
+Lamb FOB     1.65                        5.91 232.57  1.25         5.87 230.89
+Mdsx FOB     1.70  1.70  1.75  1.75      5.96 234.54  1.25         5.87 230.89
+FOB SW Que   2.69                        6.95 273.51N/A
+Track        2.14                        6.39 251.66N/A
+PROCESSORS
+Chat-Eth    N/A  N/A   N/A   N/A                      1.60         6.22 244.67
+Jhnstwn-Eth N/A  N/A   N/A   N/A                      1.69         6.31 248.22
+Aylmer-Eth  N/A  N/A   N/A   N/A                    N/A
+Sarn-Eth    N/A  N/A   N/A   N/A                    N/A
+London-Ing  N/A  N/A   N/A   N/A                      1.65         6.27 246.64
+Cardnl-Ing  N/A  N/A   N/A     2.63                   1.70         6.32 248.61
+W O Feed     2.11                        6.37 250.68
+max 3.0 ppm
+US Rep       2.04                        6.30 247.92
+Toledo El.   0.14                        4.39 173.00 -0.55         4.07 160.13
+
+TRANSFER
+Pt. Colb     2.00                        6.26 246.35  1.50         6.12 240.74
+Prescott     2.52                        6.78 266.82  1.82         6.44 253.33
+
+
+HI SD CRN    1.40                        5.65 3/4
+*Wet Bid
+
+
+Exchange rate was 1.369 up 0.0006
+Chicago soybeans closed slightly higher.
+
+      MAR26   HI 11.42                   NOV26     HI 11.19  1/4
+             LOW 11.29  1/4                       LOW 11.10
+            CLOSE11.41   Up 7 1/2               CLOSE 11.18  1/4  Up 1 3/4
+
+            OLD CROP                                  NEW CROP
+Location    Basis  1mt   2mt   3mt  U.S.  $/bu   $/mt Basis  U.S.   $/bu   $/mt
+ELEVATORS        +MAR26+MAY26+MAY26
+CK Low      3.65                         15.06 553.36  3.00        14.18 521.12
+CK High     3.80                         15.21 558.87  3.10        14.28 524.79
+CK Average  3.73                   -0.35 15.14 556.12  3.07 -0.77  14.25 523.64
+Essex Cty   3.80                         15.21 558.87  3.05        14.23 522.95
+Mdsx Low    3.65                         15.06 553.36  3.00        14.18 521.12
+Mdsx High   3.75                         15.16 557.03  3.10        14.28 524.79
+Mdsx Average3.72                   -0.36 15.13 555.93  3.06 -0.78  14.24 523.32
+Hensall     3.68                         15.09 554.59  3.00        14.18 521.12
+Bruce       3.70                         15.11 555.20  3.00        14.18 521.12
+Putnam      3.65                         15.06 553.36  3.05        14.23 522.95
+Guelph      3.72                         15.13 555.93  3.05        14.23 522.95
+Burford     3.82                         15.23 559.61  3.12        14.30 525.53
+Port Perry  3.62                         15.03 552.26  2.92        14.10 518.18
+Norfolk     3.75                         15.16 557.03  3.15        14.33 526.63
+Palmerston  3.70                         15.11 555.20  3.05        14.23 522.95
+Varna       3.70                         15.11 555.20  3.00        14.18 521.12
+Trenton     3.35                         14.76 542.34  3.20        14.38 528.47
+Winchester  3.28                         14.69 539.77  3.23        14.41 529.57
+North Gower 3.10                         14.51 533.15  3.00        14.18 521.12
+Vankleek Hil3.49                         14.90 547.48  3.14        14.32 526.26
+Huron FOB   3.88  3.95  3.88  N/A        15.29 561.81  N/A
+Kent FOB    4.10                         15.51 569.89  3.10        14.28 524.79
+Lambton FOB 3.80                         15.21 558.87  3.05        14.23 522.95
+Mdsx FOB    3.89  3.96  3.88  3.95       15.30 562.18  3.19        14.37 528.10
+
+PROCESSORS
+Windsor     4.35                         15.76 579.08  3.51        14.69 539.86
+
+TRANSFER
+Hamilton    4.35                         15.76 579.08  3.60        14.78 543.16
+Prescott    3.63                         15.04 552.63  3.39        14.57 535.45
+Port Colborn3.98                         15.39 565.49  3.69        14.87 546.47
+
+Toledo El.  -0.14                        11.27 414.22 -0.75        10.43 383.22
+
+
+Exchange rate was 1.369 up 0.0006
+Chicago wheat closed higher.
+MAR26      HI     5.63  3/4            JUL26   HI      5.77  1/2
+           LOW    5.46                         LOW        5.58
+           CLOSE  5.59  1/2  Up 12 1/2         CLOSE   5.74  1/2  Up 14 3/4
+
+Minni wheat closed moderately higher.
+MAR26      HI        5.83              SEP26   HI      6.24  3/4
+           LOW    5.71  3/4                    LOW     6.15  1/2
+           CLOSE  5.82  1/2  Up 8 1/2          CLOSE   6.24  1/4  Up 8 3/4
+
+Direct MarkHarvest 2025                Harvest 2026
+           DELIVERED BASIS             DELIVERED BASIS
+Location   SWW(C) HRW(C) SRW(C) HRS(M) SWW(C)  HRW(C)  SRW(C) HRS(M)
+ELEVATORS
+Brgssvll     N/A    N/A   1.52    N/A    N/A     N/A    1.15    N/A
+London       N/A   1.98   1.63    N/A    N/A     1.60   1.24    N/A
+Hensall     1.50   1.85   1.50   1.70    1.60    1.60   1.15   1.65
+Trenton      N/A    N/A    N/A    N/A    N/A     N/A    1.50    N/A
+Bruce       1.70   2.00   1.50   1.65    1.65    1.65   1.15   1.25
+Essex        N/A    N/A   1.55    N/A    N/A     N/A    1.20    N/A
+Norwich     1.50    N/A   1.50    N/A    1.70    N/A    1.15    N/A
+Belmore     1.45   1.80   1.50   1.65    N/A     1.70   1.20    N/A
+Kent Bridge 1.50    N/A   1.50    N/A    1.70    N/A    1.15    N/A
+Chatham      N/A    N/A   1.55    N/A    N/A     N/A    1.20    N/A
+Brigden      N/A    N/A   1.55    N/A    N/A     N/A    1.20    N/A
+Palmerston  1.45   1.80   1.50   1.65    N/A     1.70   1.20    N/A
+Varna       1.50   2.60   1.50    N/A    1.60    1.60   1.15    N/A
+Mitchell    1.50    N/A   1.50    N/A    1.70    N/A    1.15    N/A
+Thornton     N/A   1.98   1.63   1.72    N/A     1.60   1.24    N/A
+North Gower  N/A   1.45   1.55   1.62    N/A     1.30   1.55   1.22
+W O Feed                  2.44
+TERMINAL
+Port Colbor  N/A    N/A   2.18    N/A    N/A     N/A    1.60    N/A
+
+Toledo El. 5.62US        7.69CA         5.55US         7.59CA

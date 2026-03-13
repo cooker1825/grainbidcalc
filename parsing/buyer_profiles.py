@@ -28,13 +28,18 @@ BUYER_PROFILES: dict[str, dict] = {
     },
     "farm_market_news": {
         "name": "Farm Market News (OMAFRA)",
+        "multi_location": True,
         "known_commodities": ["soybeans", "corn", "srw_wheat", "hrw_wheat", "swr_wheat"],
         "basis_unit": "CAD/BU",
         "delivery_type": "mixed",
         "format_hints": (
-            "Multi-page PDF. Separate pages for corn, soybeans, wheat. Multiple locations per page. "
-            "Futures in CBOT fractional format (e.g., 426'2s). "
-            "Basis shown by location with spot/1mt/2mt/3mt columns. "
+            "IMPORTANT: This is a multi-location market report. "
+            "Set buyer_name to the LOCATION/ELEVATOR name (e.g., 'Hensall', 'Windsor', 'Guelph'), "
+            "NOT to 'Farm Market News'. Each row is a separate location. "
+            "Sections: ELEVATORS (regional averages), PROCESSORS (ethanol/crush plants), TRANSFER (port/track). "
+            "Basis shown by location with Spot/1mt/2mt/3mt columns — use Spot column as basis_value. "
+            "Old Crop uses the near-month futures, New Crop uses the harvest-month futures. "
+            "Futures in CBOT fractional format (e.g., 426'2s = 4.2625). "
             "Exchange rate shown at top."
         ),
         "identifier_patterns": ["farm market news", "omafra"],

@@ -45,35 +45,22 @@ RULES:
    - Wheat harvest: July (YYYY-07)
 8. Confidence: rate your confidence in each extracted bid from 0.0 to 1.0.
 
-Respond ONLY with valid JSON. No markdown, no explanation."""
+Respond ONLY with a raw JSON array. No markdown code fences, no explanation, no text before or after the JSON. Start your response with [ and end with ]."""
 
 EXTRACTION_PROMPT = """Extract all basis bids from the following grain buyer communication.
 
 Source type: {source_type}
-Buyer (if known): {buyer_hint}
+Source profile (hints only): {buyer_hint}
 Date: {date_hint}
+
+IMPORTANT: If the source profile contains "multi_location: true", extract each row as a separate bid
+using the location/elevator name as buyer_name (e.g., "Hensall", "Windsor"), NOT the report name.
 
 Content:
 {content}
 
-Return JSON array:
-[
-  {{
-    "buyer_name": "...",
-    "commodity": "...",
-    "delivery_month": "YYYY-MM",
-    "delivery_label": "...",
-    "basis_value": 0.00,
-    "basis_unit": "CAD/BU",
-    "futures_contract_raw": "...",
-    "futures_contract_normalized": "...",
-    "delivery_type": "delivered",
-    "destination": "...",
-    "cash_price": 0.00,
-    "cash_price_unit": "CAD/BU",
-    "confidence": 0.95
-  }}
-]
+Return a compact JSON array. Omit any field that is null or unknown — do not include null values.
+Required fields: buyer_name, commodity, delivery_month, basis_value, basis_unit, futures_contract_normalized, confidence.
+Optional (include only if known): delivery_label, futures_contract_raw, delivery_type, destination, cash_price, cash_price_unit.
 
-Set basis_value to null (not 0) if the source did not provide a basis.
-Set cash_price to null if the source did not provide a cash price."""
+[{{"buyer_name":"...","commodity":"...","delivery_month":"YYYY-MM","basis_value":0.00,"basis_unit":"CAD/BU","futures_contract_normalized":"...","confidence":0.95}}]"""

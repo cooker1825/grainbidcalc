@@ -11,8 +11,9 @@ from typing import Any
 import anthropic
 
 from parsing.prompt_templates import SYSTEM_PROMPT, EXTRACTION_PROMPT
+from config.settings import ANTHROPIC_API_KEY
 
-client = anthropic.Anthropic()  # Uses ANTHROPIC_API_KEY env var
+client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
 def parse_bid_sheet(
@@ -65,16 +66,30 @@ def parse_bid_sheet(
         ),
     })
 
-    response = client.messages.create(
+    response = client.beta.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=4096,
+        max_tokens=16000,
+        betas=["output-128k-2025-02-19"],
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": messages_content}],
     )
 
     raw_text = response.content[0].text
-    # Strip any accidental markdown fences
-    clean = raw_text.replace("```json", "").replace("```", "").strip()
-    bids = json.loads(clean)
 
+    # Extract JSON array — find first [ and last ]
+    start = raw_text.find("[")
+    if start == -1:
+        raise ValueError(f"No JSON array found in parser response: {raw_text[:200]}")
+
+    end = raw_text.rfind("]")
+    if end == -1:
+        # Response was truncated (hit token limit) — recover by keeping complete objects
+        last_brace = raw_text.rfind("}")
+        if last_brace == -1:
+            raise ValueError(f"Parser response has no complete objects: {raw_text[:200]}")
+        clean = raw_text[start:last_brace + 1] + "]"
+    else:
+        clean = raw_text[start:end + 1]
+
+    bids = json.loads(clean)
     return bids
