@@ -83,6 +83,10 @@ async def scrape() -> list[dict]:
             if basis_str is None or delivery_raw is None:
                 continue
 
+            # Only keep Talbotville bids
+            if destination.lower().strip() != "talbotville":
+                continue
+
             try:
                 basis_value = float(basis_str)
             except (ValueError, TypeError):

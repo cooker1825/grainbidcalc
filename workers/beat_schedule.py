@@ -44,6 +44,11 @@ beat_schedule = {
         "task": "workers.tasks.task_snapshot_us_basis",
         "schedule": crontab(hour="20", minute="30", day_of_week="1-5"),
     },
+    # Bushel token expiry check: daily at 9 AM ET (13:00 UTC)
+    "check-bushel-token": {
+        "task": "workers.tasks.task_check_bushel_token",
+        "schedule": crontab(hour="13", minute="0"),
+    },
 }
 
 timezone = "UTC"

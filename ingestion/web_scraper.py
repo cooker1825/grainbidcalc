@@ -17,7 +17,7 @@ from parsing.normalizer import normalize_bids
 from parsing.validator import validate_bids
 from calculation.exchange_rate import get_latest_exchange_rate
 from db.queries import insert_bid, upsert_bid, mark_previous_bids_stale, log_ingestion, resolve_buyer_id, resolve_commodity_id
-from data.onedrive_writer import write_bids_to_onedrive
+from data.onedrive_writer import write_bids_to_onedrive, write_bids_to_elevator_onedrive
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +59,17 @@ STRUCTURED_SCRAPERS = {
     "dg_global": {
         "module": "ingestion.scrapers.dg_global",
         "source_url": "https://dgglobal.ca/cash-bids",
+        "workbook": "elevator",
     },
     "hdc": {
         "module": "ingestion.scrapers.hdc",
         "source_url": "https://hensallco-op.ca/Cash-Bids.htm",
+        "workbook": "elevator",
+    },
+    "bushel_ingredion": {
+        "module": "ingestion.scrapers.bushel",
+        "source_url": "https://portal.bushelpowered.com/ingredion/cash-bids",
+        "workbook": "delivered",
     },
 }
 
@@ -129,16 +136,20 @@ async def _run_structured_scraper(key: str) -> dict:
             bid["storage_error"] = str(e)
             logger.warning("Failed to store %s bid: %s", key, e)
 
-    # Write to SharePoint XLSX
+    # Write to SharePoint XLSX (elevator or delivered workbook)
     xlsx_bids = [
         b for b in validated
         if b.get("basis_value") is not None and not b.get("storage_error")
     ]
     if xlsx_bids:
         try:
-            od_results = write_bids_to_onedrive(xlsx_bids)
+            writer_fn = (write_bids_to_elevator_onedrive
+                         if config.get("workbook") == "elevator"
+                         else write_bids_to_onedrive)
+            od_results = writer_fn(xlsx_bids)
             od_written = sum(1 for r in od_results if r.get("success"))
-            logger.info("%s OneDrive: wrote %d/%d bids", key, od_written, len(xlsx_bids))
+            logger.info("%s OneDrive (%s): wrote %d/%d bids",
+                        key, config.get("workbook", "delivered"), od_written, len(xlsx_bids))
         except Exception as e:
             logger.warning("%s OneDrive write failed: %s", key, e)
 

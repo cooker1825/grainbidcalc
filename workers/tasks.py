@@ -104,3 +104,64 @@ def task_distribute_scheduled(time_slot: str):
     return asyncio.run(trigger_scheduled(time_slot))
 
 
+@app.task
+def task_check_bushel_token():
+    """Check Bushel session token expiry and email Jeff if within 2 days."""
+    import json
+    import asyncio
+    from datetime import datetime, timezone, timedelta
+    from pathlib import Path
+
+    token_file = Path("/opt/grainbidcalc/data/bushel_token.json")
+    if not token_file.exists():
+        return {"status": "no_token_file"}
+
+    try:
+        data = json.loads(token_file.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {"status": "unreadable"}
+
+    expires_str = data.get("expires")
+    if not expires_str:
+        return {"status": "no_expiry_field"}
+
+    # Parse ISO expiry: "2026-04-12T19:34:53.054Z"
+    expires = datetime.fromisoformat(expires_str.replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+    remaining = expires - now
+
+    if remaining.total_seconds() <= 0:
+        subject = "URGENT: Bushel session EXPIRED"
+        body = (
+            f"The Bushel/Ingredion session token expired on {expires_str}.\n"
+            "Ingredion bids are NOT being scraped.\n\n"
+            "Re-login now:\n"
+            "  ssh root@159.89.127.66\n"
+            "  cd /opt/grainbidcalc\n"
+            "  PYTHONPATH=/opt/grainbidcalc venv/bin/python -m ingestion.scrapers.bushel_login\n"
+        )
+    elif remaining < timedelta(days=2):
+        days_left = remaining.total_seconds() / 86400
+        subject = f"Bushel session expires in {days_left:.1f} days"
+        body = (
+            f"The Bushel/Ingredion session token expires on {expires_str} "
+            f"({days_left:.1f} days from now).\n\n"
+            "Please re-login before it expires to keep Ingredion bids flowing:\n"
+            "  ssh root@159.89.127.66\n"
+            "  cd /opt/grainbidcalc\n"
+            "  PYTHONPATH=/opt/grainbidcalc venv/bin/python -m ingestion.scrapers.bushel_login\n"
+        )
+    else:
+        days_left = remaining.total_seconds() / 86400
+        return {"status": "ok", "days_remaining": round(days_left, 1)}
+
+    # Send the warning email
+    from distribution.email_sender import send_email
+    asyncio.run(send_email(
+        to_address="jeff@mapleviewfarms.ca",
+        subject=subject,
+        body=body,
+    ))
+    return {"status": "notified", "subject": subject}
+
+

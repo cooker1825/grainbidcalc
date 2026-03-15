@@ -22,7 +22,7 @@ from calculation.price_calculator import back_calculate_basis_from_cash
 from calculation.futures_feed import get_latest_futures_price
 from calculation.exchange_rate import get_latest_exchange_rate
 from db.queries import insert_bid, mark_previous_bids_stale, log_ingestion, resolve_buyer_id, resolve_commodity_id
-from data.onedrive_writer import write_bids_to_onedrive
+from data.onedrive_writer import write_bids_to_onedrive, write_bids_to_elevator_onedrive
 from ingestion.preprocessor import preprocess
 
 logger = logging.getLogger(__name__)
@@ -142,15 +142,19 @@ async def process_incoming(
             bid["storage_error"] = str(e)
 
     # 8. Write basis bids to SharePoint XLSX via Graph API
+    #    Farm Market News bids go to elevator workbook only; all others to delivered.
     xlsx_bids = [
         b for b in validated
         if b.get("basis_value") is not None and not b.get("storage_error")
     ]
+    is_elevator_source = profile.get("name", "").startswith("Farm Market News")
     if xlsx_bids:
         try:
-            od_results = write_bids_to_onedrive(xlsx_bids)
+            writer_fn = write_bids_to_elevator_onedrive if is_elevator_source else write_bids_to_onedrive
+            od_results = writer_fn(xlsx_bids)
             od_written = sum(1 for r in od_results if r.get("success"))
-            logger.info("OneDrive: wrote %d/%d bids", od_written, len(xlsx_bids))
+            wb_label = "elevator" if is_elevator_source else "delivered"
+            logger.info("OneDrive (%s): wrote %d/%d bids", wb_label, od_written, len(xlsx_bids))
         except Exception as e:
             logger.warning("OneDrive write failed: %s", e)
 
